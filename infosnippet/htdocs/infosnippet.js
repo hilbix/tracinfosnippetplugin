@@ -78,9 +78,9 @@ function CreateBox (url,ack,tooltip) {
     $('<legend>').text('Ticket Info').appendTo($box);
 
     // the actual info snippet text
-    $info= $('<p>')
+    $info= $('<pre>')
       .attr('id','infosnippet-text')
-      .append(info.projectname + ' Ticket #' + info.ticketid + '</br>'+ info.ticketsummary + '</br>')
+      .append(info.projectname + ' Ticket #' + info.ticketid + '\n'+ info.ticketsummary + '\n')
       .appendTo($box);
     // URL of current page is part of the info snippet text.
     $("<a>")
