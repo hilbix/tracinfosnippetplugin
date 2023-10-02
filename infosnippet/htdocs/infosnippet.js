@@ -1,68 +1,98 @@
+// Copyright starts below.
+//
+// Following part is NOT Copyrighted (free as free beer, free speech and free baby).
+// This is NOT written to work in very ancient browsers.
+'use strict';
+
+jQuery(function($){
+
+function e2clip(id, toast)
+{
+  console.log({id,toast});
+  var el = document.getElementById(id);
+  if (el) innertext2clip(el, toast);
+}
+
+function innertext2clip(el, toast)
+{
+  const show = _ => { toast.addClass(_); setTimeout(() => toast.removeClass(_), 5000) }
+  const ok = () => show('copyok');
+
+  var text = el.innerText;
+  console.log(`:copy:\n${text}`);
+
+  if (navigator.clipboard)
+    navigator.clipboard.writeText(text).then(ok, () => show('copyko'));
+  else
+    {
+      fail();
+      return;
+      CopyToClipboard(text);
+      ok();
+    }
+}
+
+var url = window.location.href.split('#').shift();
+
+CreateBox(url);
+CreateNav();
+
+$('pre').each(function()
+  {
+    const self = this;
+    $('<button class="copybutton"/>').on('click', function(ev)
+       {
+         innertext2clip(self, $(this));
+         ev.preventDefault();
+         ev.stopPropagation();
+         return false;
+       }).appendTo(this);
+  });
+
+navigator.permissions.query({ name:'clipboard-write' }).catch(_ => console.log(`clipboard-write not supported: ${_}`));
+console.log('here');
+
+// Following code has only been modified, so it is still copyrighted:
+//
 // TRAC TicketInfo-Plugin
 //
 // Copyright (C) 2021 Clemens
 // All rights reserved.
 //
+// Note: Changes of Valentin Hilbig are free to use.
+//
 // This software is licensed as described in the file COPYING, which
 // you should have received as part of this distribution.
 
-jQuery(function($) {
-
-  // For the URL we are intentionally not using window.location.href
-  // because we want only the pure URL without local #anchors.
-  var url = window.location.protocol + '//' + window.location.hostname + window.location.pathname;
-
-  var tooltip = 'Copy info snippet text to clipboard';
-
-  // We have a hidden Acknowledge text which appears only temporarily when the button is clicked.
-  $ack = $('<span>')
-    .addClass('infosnippet-ack')
-    .attr('style','display: none; padding-right: 0.5em;')
-    .text('copy to clipboard completed');
-
-  CreateNav(url,$ack.clone(),tooltip);
-  CreateBox(url,$ack.clone(),tooltip);
-})
-
+var tooltip = 'Copy info snippet text to clipboard';
 
 // create a "Info" context navigation menu item at top of page. It will copy to clipboard.
-function CreateNav (url,ack,tooltip) {
+function CreateNav()
+{
+  if ($('#infosnippet-nav').length) return;
+  if (info.navoption!=='all' && info.navoption!=='ticket' && info.navoption!=='wiki') return;
 
-  if ($('#infosnippet-nav').length == 0) { // only if not yet exists
-  if (info.navoption=='all' || info.navoption=='ticket' || info.navoption=='wiki') {
+  var $navbutton = $('<li/>');
+  $("#ctxtnav ul li:first").after($navbutton);
 
-    var $navbutton = $('<li/>');
-    $("#ctxtnav ul li:first").after($navbutton);
+  var a = $("<a>")
+    .attr('href', "#infosnippet")
+    .attr('id', 'infosnippet-nav')
+    .attr("title", tooltip)
+    .text("Info")
+    .appendTo($navbutton);
 
-    ack.appendTo($navbutton);
-    $("<a>")
-      .attr('href', "#infosnippet")
-      .attr('id', 'infosnippet-nav')
-      .attr("title", tooltip)
-      .text("Info")
-      .appendTo($navbutton);
-
-    // register on-click handler
-    $navbutton.click(function() {
-      $('#infosnippet').show(); // make sure the box is shown otherwise cannot copy to clipboard
-      CopyToClipboard('infosnippet-text');
-      if (info.boxoption!='all' && info.boxoption!='ticket') {
-        $('#infosnippet').hide(); // hide again if disable in config
-      }
-      $(".infosnippet-ack").show().delay(5000).fadeOut();
-      return false;
-    });
-  }}
+ $navbutton.click(() => { e2clip('infosnippet-text', a); return false });
 }
 
 // Create a "Info Snippet" box at bottom of page
 function CreateBox (url,ack,tooltip) {
 
-  var $box;
+  var $box, $info;
 
   if ($('div.ticket').length){
 
-    if ($('#infosnippet').length ) { return;} // skip if already exists
+    if ($('#infosnippet').length ) return; // skip if already exists
 
     // The "Ticket Info" box.
     $box = $('<fieldset>')
@@ -81,19 +111,14 @@ function CreateBox (url,ack,tooltip) {
     $info= $('<pre>')
       .attr('id','infosnippet-text')
       .append(info.projectname + ' Ticket #' + info.ticketid + '\n'+ info.ticketsummary + '\n')
-      .appendTo($box);
-    // URL of current page is part of the info snippet text.
-    $("<a>")
-      .attr('href',url)
-      .append(url)
-      .appendTo($info);
+      ;
 
     // The fieldset is inserted right after the ticket properties
     $("div.ticket #properties").after($box);
   }
   else if ($('#content.wiki').length){
 
-    if ($('#infosnippet').length ) { return;} // skip if already exists
+    if ($('#infosnippet').length ) return; // skip if already exists
 
     $box = $('<div>')
       .attr('id','infosnippet')
@@ -106,57 +131,41 @@ function CreateBox (url,ack,tooltip) {
     if (info.boxoption=='wiki') { $box.show(); }
 
     // the actual info snippet text
-    $info= $('<p>')
+    $info= $('<pre>')
       .attr('id','infosnippet-text')
-      .append(info.projectname + ' ' + info.page + '</br>')
-      .appendTo($box);
+      .append(info.projectname + ' ' + info.page + '\n')
+      ;
+
     // search for the first head line in this page
-    headline=$('#content.wiki .wikipage :header');
-    if(headline.length){$info.append(headline[0].innerText+'</br>');}
-    // URL of current page is part of the info snippet text.
-    $("<a>")
-      .attr('href',url)
-      .append(url)
-      .appendTo($info);
+    const headline=$('#content.wiki .wikipage :header');
+    if(headline.length){$info.append(headline[0].innerText+'\n');}
 
     // The infobox is inserted right after the ticket properties
-    $("#content.wiki #attachments").after($box);
+    $("#content.wiki #attachments").append($box);
   }
   else {
     return;
   }
 
-  $btn=$('<div>')
-    .attr('id','infosnippet-button')
-    .append(ack)
-    .prependTo($box);
-  $('<a>')
-    .attr('href','')
-    .text('Copy to Clipboard')
-    .addClass('button')
-    .attr("title", tooltip)
-    .appendTo($btn);
-
-  // register on-click handler
-  $btn.click(function() {
-    CopyToClipboard('infosnippet-text');
-    $(".infosnippet-ack").show().delay(5000).fadeOut();
-    return false;
-  });
-
+  $info.appendTo($box);
+  // URL of current page is part of the info snippet text.
+  $("<a>")
+    .attr('href',url)
+    .append(url)
+    .appendTo($info);
 }
 
-// copy the text from a DIV container (given by ID) into the system clipboard
-function CopyToClipboard (containerid) {
-  if (document.getElementById(containerid) == null) return;
+function CopyToClipboard(text)
+{
   var dummy= document.createElement('textarea')
   dummy.id = 'temp_element';
   dummy.style.height = 0;
   dummy.style.border = 0;
+  dummy.value = text;
   document.body.appendChild(dummy);
-  dummy.value = document.getElementById(containerid).innerText; // copy text from container into textarea
   document.getElementById("temp_element").select();
   document.execCommand('copy');
   document.body.removeChild(dummy);
 }
 
+});
