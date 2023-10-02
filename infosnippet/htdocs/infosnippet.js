@@ -8,7 +8,7 @@
 
 jQuery(function($) {
 
-  // For the URL we are intentionally not using window.location.href 
+  // For the URL we are intentionally not using window.location.href
   // because we want only the pure URL without local #anchors.
   var url = window.location.protocol + '//' + window.location.hostname + window.location.pathname;
 
@@ -20,7 +20,6 @@ jQuery(function($) {
     .attr('style','display: none; padding-right: 0.5em;')
     .text('copy to clipboard completed');
 
-  
   CreateNav(url,$ack.clone(),tooltip);
   CreateBox(url,$ack.clone(),tooltip);
 })
@@ -29,12 +28,12 @@ jQuery(function($) {
 // create a "Info" context navigation menu item at top of page. It will copy to clipboard.
 function CreateNav (url,ack,tooltip) {
 
-  if ($('#infosnippet-nav').length == 0) { // only if not yet exists 
-  if (info.navoption=='all' || info.navoption=='ticket' || info.navoption=='wiki') { 
-  
+  if ($('#infosnippet-nav').length == 0) { // only if not yet exists
+  if (info.navoption=='all' || info.navoption=='ticket' || info.navoption=='wiki') {
+
     var $navbutton = $('<li/>');
     $("#ctxtnav ul li:first").after($navbutton);
-    
+
     ack.appendTo($navbutton);
     $("<a>")
       .attr('href', "#infosnippet")
@@ -42,12 +41,12 @@ function CreateNav (url,ack,tooltip) {
       .attr("title", tooltip)
       .text("Info")
       .appendTo($navbutton);
-      
-    // register on-click handler 
+
+    // register on-click handler
     $navbutton.click(function() {
       $('#infosnippet').show(); // make sure the box is shown otherwise cannot copy to clipboard
       CopyToClipboard('infosnippet-text');
-      if (info.boxoption!='all' && info.boxoption!='ticket') { 
+      if (info.boxoption!='all' && info.boxoption!='ticket') {
         $('#infosnippet').hide(); // hide again if disable in config
       }
       $(".infosnippet-ack").show().delay(5000).fadeOut();
@@ -62,20 +61,20 @@ function CreateBox (url,ack,tooltip) {
   var $box;
 
   if ($('div.ticket').length){
-  
+
     if ($('#infosnippet').length ) { return;} // skip if already exists
-   
+
     // The "Ticket Info" box.
     $box = $('<fieldset>')
       .attr('id','infosnippet')
       .addClass('ticket');
-      
+
     // Hide the box unless enabled in the config.
-    // Note that we need the box (invisible or not), because want to copy its content to the clipboard. 
+    // Note that we need the box (invisible or not), because want to copy its content to the clipboard.
     $box.hide();
     if (info.boxoption=='all') { $box.show(); }
     if (info.boxoption=='ticket') { $box.show(); }
-      
+
     $('<legend>').text('Ticket Info').appendTo($box);
 
     // the actual info snippet text
@@ -88,24 +87,24 @@ function CreateBox (url,ack,tooltip) {
       .attr('href',url)
       .append(url)
       .appendTo($info);
-      
+
     // The fieldset is inserted right after the ticket properties
     $("div.ticket #properties").after($box);
   }
   else if ($('#content.wiki').length){
-  
+
     if ($('#infosnippet').length ) { return;} // skip if already exists
 
     $box = $('<div>')
       .attr('id','infosnippet')
       .addClass('wiki');
-      
+
     // Hide the box unless enabled in the config.
-    // Note that we need the box (invisible or not), because want to copy its content to the clipboard. 
+    // Note that we need the box (invisible or not), because want to copy its content to the clipboard.
     $box.hide();
     if (info.boxoption=='all') { $box.show(); }
     if (info.boxoption=='wiki') { $box.show(); }
-    
+
     // the actual info snippet text
     $info= $('<p>')
       .attr('id','infosnippet-text')
@@ -119,14 +118,14 @@ function CreateBox (url,ack,tooltip) {
       .attr('href',url)
       .append(url)
       .appendTo($info);
-      
+
     // The infobox is inserted right after the ticket properties
     $("#content.wiki #attachments").after($box);
   }
   else {
     return;
   }
-  
+
   $btn=$('<div>')
     .attr('id','infosnippet-button')
     .append(ack)
@@ -137,8 +136,8 @@ function CreateBox (url,ack,tooltip) {
     .addClass('button')
     .attr("title", tooltip)
     .appendTo($btn);
-  
-  // register on-click handler 
+
+  // register on-click handler
   $btn.click(function() {
     CopyToClipboard('infosnippet-text');
     $(".infosnippet-ack").show().delay(5000).fadeOut();
